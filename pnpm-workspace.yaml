@@ -7,3 +7,5 @@ onlyBuiltDependencies:
   - sharp
   - unrs-resolver
 verifyDepsBeforeRun: false
+# Apply the same one-day release-age policy locally and on Vercel.
+minimumReleaseAge: 1440

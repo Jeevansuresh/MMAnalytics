@@ -1,0 +1,847 @@
+openapi: "3.1.0"
+info:
+  title: "MManalytics API"
+  version: "0.1.0"
+  description: "Frontend mock contract. Exactly eight read-only endpoints. Dates use UTC. Fixture window is 2026-07-07 through 2026-10-04. Percent values use 0-100; currency is INR. Prior period is an immediately preceding equal-length window; compare only when previousAvailableDays equals days. DAU/WAU KPIs average daily distinct counts; cross-campus users are assumed disjoint. Retention uses eligible signup cohorts observed as of to, null for immature cells; W0 is 100 and Wn measures return during day 7n through 7n+6. A cell is mature only when the entire included cohort has reached the window end. Response time is the median of synthetic first-response observations. Penetration is cumulative registered students divided by campus population as of to. Attribution is exclusive, with deterministic rounded counts reconciled to signups and activations. StaffPreview on /api/me is returned only for admin; edits in the UI are ephemeral and have no API. Mock-only headers x-mock-role, x-mock-campus, x-mock-state select role, campus, and success/empty/error/loading scenarios; never trust these headers in a backend. Real authorization is out of scope."
+paths:
+  "/api/me":
+    get:
+      operationId: "getMe"
+      summary: "Current stub session"
+      parameters: []
+      responses:
+        200:
+          description: "Success. Empty selections return empty arrays and null KPI values."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Session"
+        400:
+          description: "Invalid date, range, or cohort"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        403:
+          description: "Campus outside caller scope"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        404:
+          description: "Unknown campus"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        503:
+          description: "Simulated unavailability"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+  "/api/metrics/overview":
+    get:
+      operationId: "getOverview"
+      summary: "Acquisition, engagement, and mature D1/D7/D30 retention"
+      parameters:
+        - "$ref": "#/components/parameters/From"
+        - "$ref": "#/components/parameters/To"
+        - "$ref": "#/components/parameters/CampusId"
+      responses:
+        200:
+          description: "Success. Empty selections return empty arrays and null KPI values."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Analytics"
+        400:
+          description: "Invalid date, range, or cohort"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        403:
+          description: "Campus outside caller scope"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        404:
+          description: "Unknown campus"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        503:
+          description: "Simulated unavailability"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+  "/api/metrics/retention":
+    get:
+      operationId: "getRetention"
+      summary: "Weekly signup cohorts and observed retention"
+      parameters:
+        - "$ref": "#/components/parameters/From"
+        - "$ref": "#/components/parameters/To"
+        - "$ref": "#/components/parameters/CampusId"
+        - name: "cohort"
+          in: "query"
+          schema:
+            type: "string"
+            enum:
+              - "weekly"
+            default: "weekly"
+      responses:
+        200:
+          description: "Success. Empty selections return empty arrays and null KPI values."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/RetentionResponse"
+        400:
+          description: "Invalid date, range, or cohort"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        403:
+          description: "Campus outside caller scope"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        404:
+          description: "Unknown campus"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        503:
+          description: "Simulated unavailability"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+  "/api/campuses":
+    get:
+      operationId: "getCampuses"
+      summary: "Campus density and response health"
+      parameters:
+        - "$ref": "#/components/parameters/From"
+        - "$ref": "#/components/parameters/To"
+        - "$ref": "#/components/parameters/CampusId"
+      responses:
+        200:
+          description: "Success. Empty selections return empty arrays and null KPI values."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/CampusesResponse"
+        400:
+          description: "Invalid date, range, or cohort"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        403:
+          description: "Campus outside caller scope"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        404:
+          description: "Unknown campus"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        503:
+          description: "Simulated unavailability"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+  "/api/campuses/{id}/metrics":
+    get:
+      operationId: "getCampusMetrics"
+      summary: "Daily campus activity and response metrics"
+      parameters:
+        - "$ref": "#/components/parameters/From"
+        - "$ref": "#/components/parameters/To"
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        200:
+          description: "Success. Empty selections return empty arrays and null KPI values."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Analytics"
+        400:
+          description: "Invalid date, range, or cohort"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        403:
+          description: "Campus outside caller scope"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        404:
+          description: "Unknown campus"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        503:
+          description: "Simulated unavailability"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+  "/api/growth/sources":
+    get:
+      operationId: "getGrowthSources"
+      summary: "Attributed signups, activations, and spend by source"
+      parameters:
+        - "$ref": "#/components/parameters/From"
+        - "$ref": "#/components/parameters/To"
+        - "$ref": "#/components/parameters/CampusId"
+      responses:
+        200:
+          description: "Success. Empty selections return empty arrays and null KPI values."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/SourcesResponse"
+        400:
+          description: "Invalid date, range, or cohort"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        403:
+          description: "Campus outside caller scope"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        404:
+          description: "Unknown campus"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        503:
+          description: "Simulated unavailability"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+  "/api/growth/ambassadors":
+    get:
+      operationId: "getAmbassadors"
+      summary: "Aggregate ambassador yield using anonymous labels"
+      parameters:
+        - "$ref": "#/components/parameters/From"
+        - "$ref": "#/components/parameters/To"
+        - "$ref": "#/components/parameters/CampusId"
+      responses:
+        200:
+          description: "Success. Empty selections return empty arrays and null KPI values."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/AmbassadorsResponse"
+        400:
+          description: "Invalid date, range, or cohort"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        403:
+          description: "Campus outside caller scope"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        404:
+          description: "Unknown campus"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        503:
+          description: "Simulated unavailability"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+  "/api/sparks/summary":
+    get:
+      operationId: "getSparksSummary"
+      summary: "Fun and Build posts and acceptance"
+      parameters:
+        - "$ref": "#/components/parameters/From"
+        - "$ref": "#/components/parameters/To"
+        - "$ref": "#/components/parameters/CampusId"
+      responses:
+        200:
+          description: "Success. Empty selections return empty arrays and null KPI values."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/SparksResponse"
+        400:
+          description: "Invalid date, range, or cohort"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        403:
+          description: "Campus outside caller scope"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        404:
+          description: "Unknown campus"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        503:
+          description: "Simulated unavailability"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+components:
+  parameters:
+    From:
+      name: "from"
+      in: "query"
+      description: "Inclusive UTC start date. Defaults to 2026-09-07 in this frozen mock. Maximum window: 90 days."
+      schema:
+        type: "string"
+        format: "date"
+    To:
+      name: "to"
+      in: "query"
+      description: "Inclusive UTC end date. Defaults to 2026-10-04. Must be on or after from."
+      schema:
+        type: "string"
+        format: "date"
+    CampusId:
+      name: "campusId"
+      in: "query"
+      description: "Optional campus filter. Campus leads are scoped to their assigned campus regardless of omission; requesting another campus returns 403."
+      schema:
+        type: "string"
+  schemas:
+    Role:
+      type: "string"
+      enum:
+        - "ceo"
+        - "admin"
+        - "campus_lead"
+    StaffPreview:
+      type: "object"
+      additionalProperties: false
+      required:
+        - "id"
+        - "label"
+        - "role"
+        - "campusId"
+        - "enabled"
+      properties:
+        id:
+          type: "string"
+        label:
+          type: "string"
+        role:
+          "$ref": "#/components/schemas/Role"
+        campusId:
+          type:
+            - "string"
+            - "null"
+        enabled:
+          type: "boolean"
+    Session:
+      type: "object"
+      additionalProperties: false
+      required:
+        - "user"
+        - "role"
+        - "campusId"
+        - "managedUsers"
+      properties:
+        user:
+          type: "object"
+          additionalProperties: false
+          required:
+            - "id"
+            - "name"
+          properties:
+            id:
+              type: "string"
+            name:
+              type: "string"
+        role:
+          "$ref": "#/components/schemas/Role"
+        campusId:
+          type:
+            - "string"
+            - "null"
+        managedUsers:
+          type: "array"
+          items:
+            "$ref": "#/components/schemas/StaffPreview"
+    Period:
+      type: "object"
+      additionalProperties: false
+      required:
+        - "from"
+        - "to"
+        - "previousFrom"
+        - "previousTo"
+        - "days"
+        - "availableDays"
+        - "previousAvailableDays"
+      properties:
+        from:
+          type: "string"
+          format: "date"
+        to:
+          type: "string"
+          format: "date"
+        previousFrom:
+          type: "string"
+          format: "date"
+        previousTo:
+          type: "string"
+          format: "date"
+        days:
+          type: "integer"
+          minimum: 0
+        availableDays:
+          type: "integer"
+          minimum: 0
+        previousAvailableDays:
+          type: "integer"
+          minimum: 0
+    Metric:
+      type: "object"
+      additionalProperties: false
+      required:
+        - "id"
+        - "label"
+        - "value"
+        - "previous"
+        - "unit"
+        - "lowerIsBetter"
+      properties:
+        id:
+          type: "string"
+        label:
+          type: "string"
+        value:
+          type:
+            - "number"
+            - "null"
+        previous:
+          type:
+            - "number"
+            - "null"
+        unit:
+          type: "string"
+          enum:
+            - "count"
+            - "percent"
+            - "minutes"
+            - "currency"
+            - "decimal"
+        lowerIsBetter:
+          type: "boolean"
+    SeriesPoint:
+      type: "object"
+      additionalProperties: false
+      required:
+        - "date"
+        - "signups"
+        - "activated"
+        - "dau"
+        - "wau"
+        - "fun"
+        - "build"
+        - "accepted"
+      properties:
+        date:
+          type: "string"
+          format: "date"
+        signups:
+          type: "integer"
+          minimum: 0
+        activated:
+          type: "integer"
+          minimum: 0
+        dau:
+          type: "integer"
+          minimum: 0
+        wau:
+          type: "integer"
+          minimum: 0
+        fun:
+          type: "integer"
+          minimum: 0
+        build:
+          type: "integer"
+          minimum: 0
+        accepted:
+          type: "integer"
+          minimum: 0
+    Insight:
+      type: "object"
+      additionalProperties: false
+      required:
+        - "title"
+        - "detail"
+        - "kind"
+      properties:
+        title:
+          type: "string"
+        detail:
+          type: "string"
+        kind:
+          type: "string"
+          enum:
+            - "positive"
+            - "attention"
+            - "neutral"
+    Analytics:
+      type: "object"
+      additionalProperties: false
+      required:
+        - "period"
+        - "kpis"
+        - "series"
+        - "insights"
+      properties:
+        period:
+          "$ref": "#/components/schemas/Period"
+        kpis:
+          type: "array"
+          items:
+            "$ref": "#/components/schemas/Metric"
+        series:
+          type: "array"
+          items:
+            "$ref": "#/components/schemas/SeriesPoint"
+        insights:
+          type: "array"
+          items:
+            "$ref": "#/components/schemas/Insight"
+    Campus:
+      type: "object"
+      additionalProperties: false
+      required:
+        - "id"
+        - "name"
+        - "shortName"
+        - "city"
+        - "students"
+        - "registered"
+        - "signups"
+        - "penetration"
+        - "sparksPerDay"
+        - "answeredWithin15m"
+        - "medianResponseMinutes"
+        - "health"
+      properties:
+        id:
+          type: "string"
+        name:
+          type: "string"
+        shortName:
+          type: "string"
+        city:
+          type: "string"
+        students:
+          type: "integer"
+          minimum: 0
+        registered:
+          type: "integer"
+          minimum: 0
+        signups:
+          type: "integer"
+          minimum: 0
+        penetration:
+          type: "number"
+        sparksPerDay:
+          type: "number"
+        answeredWithin15m:
+          type: "number"
+        medianResponseMinutes:
+          type: "number"
+        health:
+          type: "string"
+          enum:
+            - "healthy"
+            - "watch"
+            - "at_risk"
+    CampusesResponse:
+      type: "object"
+      additionalProperties: false
+      required:
+        - "period"
+        - "kpis"
+        - "campuses"
+        - "insights"
+      properties:
+        period:
+          "$ref": "#/components/schemas/Period"
+        kpis:
+          type: "array"
+          items:
+            "$ref": "#/components/schemas/Metric"
+        campuses:
+          type: "array"
+          items:
+            "$ref": "#/components/schemas/Campus"
+        insights:
+          type: "array"
+          items:
+            "$ref": "#/components/schemas/Insight"
+    Source:
+      type: "object"
+      additionalProperties: false
+      required:
+        - "id"
+        - "label"
+        - "signups"
+        - "activated"
+        - "spend"
+        - "costPerActivated"
+      properties:
+        id:
+          type: "string"
+          enum:
+            - "ambassador"
+            - "creator"
+            - "referral"
+            - "store"
+        label:
+          type: "string"
+        signups:
+          type: "integer"
+          minimum: 0
+        activated:
+          type: "integer"
+          minimum: 0
+        spend:
+          type: "number"
+        costPerActivated:
+          type:
+            - "number"
+            - "null"
+    SourcesResponse:
+      type: "object"
+      additionalProperties: false
+      required:
+        - "period"
+        - "kpis"
+        - "sources"
+        - "series"
+        - "insights"
+      properties:
+        period:
+          "$ref": "#/components/schemas/Period"
+        kpis:
+          type: "array"
+          items:
+            "$ref": "#/components/schemas/Metric"
+        sources:
+          type: "array"
+          items:
+            "$ref": "#/components/schemas/Source"
+        series:
+          type: "array"
+          items:
+            "$ref": "#/components/schemas/SeriesPoint"
+        insights:
+          type: "array"
+          items:
+            "$ref": "#/components/schemas/Insight"
+    Ambassador:
+      type: "object"
+      additionalProperties: false
+      required:
+        - "id"
+        - "label"
+        - "campusId"
+        - "campusName"
+        - "signups"
+        - "activated"
+        - "spend"
+        - "costPerActivated"
+      properties:
+        id:
+          type: "string"
+        label:
+          type: "string"
+        campusId:
+          type: "string"
+        campusName:
+          type: "string"
+        signups:
+          type: "integer"
+          minimum: 0
+        activated:
+          type: "integer"
+          minimum: 0
+        spend:
+          type: "number"
+        costPerActivated:
+          type:
+            - "number"
+            - "null"
+    AmbassadorsResponse:
+      type: "object"
+      additionalProperties: false
+      required:
+        - "period"
+        - "ambassadors"
+      properties:
+        period:
+          "$ref": "#/components/schemas/Period"
+        ambassadors:
+          type: "array"
+          items:
+            "$ref": "#/components/schemas/Ambassador"
+    SparkType:
+      type: "object"
+      additionalProperties: false
+      required:
+        - "type"
+        - "posts"
+        - "accepted"
+        - "acceptRate"
+      properties:
+        type:
+          type: "string"
+          enum:
+            - "Fun"
+            - "Build"
+        posts:
+          type: "integer"
+          minimum: 0
+        accepted:
+          type: "integer"
+          minimum: 0
+        acceptRate:
+          type: "number"
+    SparksResponse:
+      type: "object"
+      additionalProperties: false
+      required:
+        - "period"
+        - "kpis"
+        - "series"
+        - "split"
+        - "insights"
+      properties:
+        period:
+          "$ref": "#/components/schemas/Period"
+        kpis:
+          type: "array"
+          items:
+            "$ref": "#/components/schemas/Metric"
+        series:
+          type: "array"
+          items:
+            "$ref": "#/components/schemas/SeriesPoint"
+        split:
+          type: "array"
+          items:
+            "$ref": "#/components/schemas/SparkType"
+        insights:
+          type: "array"
+          items:
+            "$ref": "#/components/schemas/Insight"
+    Cohort:
+      type: "object"
+      additionalProperties: false
+      required:
+        - "week"
+        - "size"
+        - "d1"
+        - "d7"
+        - "d30"
+        - "weeks"
+      properties:
+        week:
+          type: "string"
+          format: "date"
+        size:
+          type: "integer"
+          minimum: 0
+        d1:
+          type:
+            - "number"
+            - "null"
+        d7:
+          type:
+            - "number"
+            - "null"
+        d30:
+          type:
+            - "number"
+            - "null"
+        weeks:
+          type: "array"
+          items:
+            type:
+              - "number"
+              - "null"
+    RetentionResponse:
+      type: "object"
+      additionalProperties: false
+      required:
+        - "period"
+        - "kpis"
+        - "cohorts"
+        - "insights"
+      properties:
+        period:
+          "$ref": "#/components/schemas/Period"
+        kpis:
+          type: "array"
+          items:
+            "$ref": "#/components/schemas/Metric"
+        cohorts:
+          type: "array"
+          items:
+            "$ref": "#/components/schemas/Cohort"
+        insights:
+          type: "array"
+          items:
+            "$ref": "#/components/schemas/Insight"
+    ApiError:
+      type: "object"
+      additionalProperties: false
+      required:
+        - "code"
+        - "message"
+      properties:
+        code:
+          type: "string"
+        message:
+          type: "string"

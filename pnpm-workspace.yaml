@@ -1,0 +1,9 @@
+packages:
+  - "."
+storeDir: .pnpm-store
+onlyBuiltDependencies:
+  - esbuild
+  - msw
+  - sharp
+  - unrs-resolver
+verifyDepsBeforeRun: false

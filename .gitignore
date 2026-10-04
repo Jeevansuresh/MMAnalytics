@@ -1,0 +1,12 @@
+node_modules/
+.next/
+.pnpm-store/
+.pnpm-cache/
+.pnpm-state/
+.npm-cache/
+.tooling/
+.env*
+!.env.example
+*.tsbuildinfo
+test-results/
+playwright-report/

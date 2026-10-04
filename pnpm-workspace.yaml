@@ -1,11 +1,11 @@
 packages:
   - "."
 storeDir: .pnpm-store
-onlyBuiltDependencies:
-  - esbuild
-  - msw
-  - sharp
-  - unrs-resolver
 verifyDepsBeforeRun: false
 # Apply the same one-day release-age policy locally and on Vercel.
 minimumReleaseAge: 1440
+allowBuilds:
+  esbuild: true
+  msw: true
+  sharp: true
+  unrs-resolver: true
